@@ -1,6 +1,8 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+
 
 dotenv.config();
 
@@ -12,13 +14,41 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const uri = process.env.MONGODB_URI
+
+
+const client = new MongoClient(uri, {
+    serverApi: {
+        version: ServerApiVersion.v1,
+        strict: true,
+        deprecationErrors: true,
+    },
+});
+
+
 async function run(){
     try {
+
+        await client.connect();
+
+
+        const db = client.db("accio-doc");
+        const doctorsCollection = db.collection("doctors");
+
+        app.get("/doctors", async (req, res) => {
+            const doctors = await doctorsCollection.find().toArray();
+            res.json(doctors);
+        });
+
         
     } finally {
         
     }
 }
+
+
+run().catch(console.dir);
+
 
 app.get("/", (req, res) => {
     res.send("server is running");
