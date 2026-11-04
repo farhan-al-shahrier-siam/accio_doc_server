@@ -40,6 +40,12 @@ async function run(){
             res.json(doctors);
         });
 
+        app.get("/doctors/:id", async (req, res)=>{
+            const {id} = req.params;
+            const doctor = await doctorsCollection.findOne({_id: new ObjectId(id)});
+            res.json(doctor);
+        })
+
         
     } finally {
         
