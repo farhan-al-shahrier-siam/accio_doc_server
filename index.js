@@ -3,19 +3,16 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
-
 dotenv.config();
 
 const PORT = process.env.PORT;
-
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-const uri = process.env.MONGODB_URI
-
+const uri = process.env.MONGODB_URI;
 
 const client = new MongoClient(uri, {
     serverApi: {
@@ -25,36 +22,41 @@ const client = new MongoClient(uri, {
     },
 });
 
-
-async function run(){
+async function run() {
     try {
-
         await client.connect();
-
 
         const db = client.db("accio-doc");
         const doctorsCollection = db.collection("doctors");
 
         app.get("/doctors", async (req, res) => {
-            const doctors = await doctorsCollection.find().toArray();
-            res.json(doctors);
+            const result = await doctorsCollection.find().toArray();
+            res.json(result);
         });
 
-        app.get("/doctors/:id", async (req, res)=>{
-            const {id} = req.params;
-            const doctor = await doctorsCollection.findOne({_id: new ObjectId(id)});
-            res.json(doctor);
-        })
+        app.get("/doctors/search", async (req, res) => {
+            const name = req.query.name;
 
-        
+            const result = await doctorsCollection
+                .find({
+                    name: { $regex: name, $options: "i" },
+                })
+                .toArray();
+
+            res.send(result);
+        });
+
+        app.get("/doctors/:id", async (req, res) => {
+            const { id } = req.params;
+            const doctor = await doctorsCollection.findOne({ _id: new ObjectId(id) });
+            res.json(doctor);
+        });
     } finally {
-        
+
     }
 }
 
-
 run().catch(console.dir);
-
 
 app.get("/", (req, res) => {
     res.send("server is running");
