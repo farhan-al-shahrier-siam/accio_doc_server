@@ -28,6 +28,14 @@ async function run() {
 
         const db = client.db("accio-doc");
         const doctorsCollection = db.collection("doctors");
+        const appointsCollection = db.collection("appointments");
+
+        app.post("/appointments", async (req, res)=>{
+            const bookingData = req.body
+            const result = await appointsCollection.insertOne(bookingData)
+            res.json(result);
+        })
+
 
         app.get("/doctors", async (req, res) => {
             const result = await doctorsCollection.find().toArray();
