@@ -37,6 +37,13 @@ async function run() {
         })
 
 
+        app.get("/appointments/:userID", async (req, res)=>{
+            const {userID} = req.params
+            const result = await appointsCollection.find({userID}).toArray()
+            res.json(result)
+        })
+
+
         app.get("/doctors", async (req, res) => {
             const result = await doctorsCollection.find().toArray();
             res.json(result);
