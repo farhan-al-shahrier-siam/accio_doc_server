@@ -42,6 +42,17 @@ async function run() {
             const result = await appointsCollection.find({userID}).toArray()
             res.json(result)
         })
+        app.patch("/appointments/:id", async (req, res)=>{
+            const {id} = req.params
+            const updatedData = req.body
+            const result = await appointsCollection.updateOne(
+                {_id: new ObjectId(id)},
+                {
+                    $set: updatedData
+                }
+            )
+            res.json(result)
+        })
 
 
         app.get("/doctors", async (req, res) => {
