@@ -30,30 +30,34 @@ async function run() {
         const doctorsCollection = db.collection("doctors");
         const appointsCollection = db.collection("appointments");
 
-        app.post("/appointments", async (req, res)=>{
-            const bookingData = req.body
-            const result = await appointsCollection.insertOne(bookingData)
+        app.post("/appointments", async (req, res) => {
+            const bookingData = req.body;
+            const result = await appointsCollection.insertOne(bookingData);
             res.json(result);
-        })
+        });
 
-
-        app.get("/appointments/:userID", async (req, res)=>{
-            const {userID} = req.params
-            const result = await appointsCollection.find({userID}).toArray()
-            res.json(result)
-        })
-        app.patch("/appointments/:id", async (req, res)=>{
-            const {id} = req.params
-            const updatedData = req.body
+        app.get("/appointments/:userID", async (req, res) => {
+            const { userID } = req.params;
+            const result = await appointsCollection.find({ userID }).toArray();
+            res.json(result);
+        });
+        app.patch("/appointments/:id", async (req, res) => {
+            const { id } = req.params;
+            const updatedData = req.body;
             const result = await appointsCollection.updateOne(
-                {_id: new ObjectId(id)},
+                { _id: new ObjectId(id) },
                 {
-                    $set: updatedData
-                }
-            )
-            res.json(result)
-        })
+                    $set: updatedData,
+                },
+            );
+            res.json(result);
+        });
 
+        app.delete("/appointments/:id", async (req, res) => {
+            const { id } = req.params;
+            const result = await appointsCollection.deleteOne({ _id: new ObjectId(id) });
+            res.json(result);
+        });
 
         app.get("/doctors", async (req, res) => {
             const result = await doctorsCollection.find().toArray();
@@ -78,7 +82,6 @@ async function run() {
             res.json(doctor);
         });
     } finally {
-
     }
 }
 
