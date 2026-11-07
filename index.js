@@ -2,6 +2,7 @@ const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const { createRemoteJWKSet, jwtVerify } = require("jose-cjs");
 
 dotenv.config();
 
@@ -22,6 +23,29 @@ const client = new MongoClient(uri, {
     },
 });
 
+const JWKS = createRemoteJWKSet(new URL(`${process.env.CLIENT_URL}/api/auth/jwks`));
+
+const verifyToken = async (req, res, next) => {
+    const authHeader = req?.headers.authorization;
+    // console.log(authHeader);
+    if (!authHeader) {
+        return res.status(401).json({ message: "Unauthorized request" });
+    }
+
+    const token = authHeader.split(" ")[1];
+    if (!token) {
+        return res.status(401).json({ message: "Unauthorized request" });
+    }
+
+    try {
+        const { payload } = await jwtVerify(token, JWKS);
+        // console.log(payload);
+        next();
+    } catch (error) {
+        return res.status(403).json({ message: "Forbidden" });
+    }
+};
+
 async function run() {
     try {
         await client.connect();
@@ -30,13 +54,13 @@ async function run() {
         const doctorsCollection = db.collection("doctors");
         const appointsCollection = db.collection("appointments");
 
-        app.post("/appointments", async (req, res) => {
+        app.post("/appointments", verifyToken, async (req, res) => {
             const bookingData = req.body;
             const result = await appointsCollection.insertOne(bookingData);
             res.json(result);
         });
 
-        app.get("/appointments/:userID", async (req, res) => {
+        app.get("/appointments/:userID", verifyToken, async (req, res) => {
             const { userID } = req.params;
             const result = await appointsCollection.find({ userID }).toArray();
             res.json(result);
@@ -76,7 +100,7 @@ async function run() {
             res.send(result);
         });
 
-        app.get("/doctors/:id", async (req, res) => {
+        app.get("/doctors/:id", verifyToken, async (req, res) => {
             const { id } = req.params;
             const doctor = await doctorsCollection.findOne({ _id: new ObjectId(id) });
             res.json(doctor);
